@@ -1,0 +1,3 @@
+[submodule "hojong-py-util"]
+	path = hojong-py-util
+	url = https://github.com/ssaemo/hojong-py-util
