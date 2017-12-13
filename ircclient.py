@@ -1,11 +1,13 @@
 import asyncio
 
 class IRCClient(asyncio.Protocol):
-    def __init__(self, CHANNEL, NICK, PASS, proc_chat, loop):
+    def __init__(self, CHANNEL, NICK, PASS, cb_init, cb_proc, cb_close, loop):
         self.channel = CHANNEL
         self.nick = NICK
         self.password = PASS
-        self.proc_chat = proc_chat # callback that is called data_received
+        self.cb_init = cb_init
+        self.cb_proc = cb_proc
+        self.cb_close = cb_close
         self.loop = loop
 
     # callback
@@ -22,6 +24,9 @@ class IRCClient(asyncio.Protocol):
         for msg in msg_list:
             print('*** [SENDED]', msg, end='')
             transport.write(msg.encode())
+        
+        if self.cb_init:
+            self.cb_init()
 
     # callback
     def data_received(self, data):
@@ -33,14 +38,17 @@ class IRCClient(asyncio.Protocol):
             print(data.decode())
         else:
             chat = packet[3][1:].replace('\r\n', '')
-            self.proc_chat(nick, chat)
+            if self.cb_proc:
+                self.cb_proc(nick, chat)
 
     # callback
     def connection_lost(self, exc):
         print('The server closed the connection')
         print('Stop the event loop')
         self.loop.stop()
-        
+        if self.cb_close:
+            self.cb_close()
+
     # call by main()
     def send_chat(self, chat):
         msg = 'PRIVMSG %s :%s\r\n' % (self.channel, chat)
