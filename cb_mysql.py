@@ -1,4 +1,5 @@
 import pymysql as mysql # python3.5 mysql connector
+import unittest
 
 HOST = 'localhost'
 USER = 'root'
@@ -18,13 +19,19 @@ def init_mysql(): # callback
 
 def log_to_mysql(nick, chat): # callback
     print('log_to_mysql')
-    global conn, cur
     cur.execute(query % (TB, nick, chat))
     conn.commit()
 
 def close_mysql(): # callback
     print('close_mysql')
-    global conn, cur
     cur.close()
     conn.close()
-    
+
+class TestMysql(unittest.TestCase):
+    def test_log(self):
+        init_mysql()
+        log_to_mysql('nick', 'chat')
+        close_mysql()
+
+if __name__ == '__main__':
+    unittest.main()
